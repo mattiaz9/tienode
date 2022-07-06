@@ -14,6 +14,8 @@ Run a simple pipeline after every git commit and restart the process using **pm2
 
 `cd tienode`
 
+`(pnpm|npm|yarn) install`
+
 `(pnpm|npm|yarn) build`
 
 ### 3. Change .env
