@@ -1,0 +1,35 @@
+# Config
+config/projects.js
+!config/projects.js.example
+!config/ecosystem.config.js
+
+# Dist
+dist/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Mac files
+.DS_Store
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Lcoal Tests
+test*

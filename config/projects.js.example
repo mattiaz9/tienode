@@ -1,0 +1,25 @@
+export default [
+  {
+    name: "test",
+    repo: "/Users/me/dev/websites/test",
+    repoUrl: "git@github.com:username/test.git", // <-- used for comments
+    branch: "main",
+    pipeline: [
+      "pnpm install",
+      "pnpm build",
+    ],
+    options: {
+      script: "npm",
+      args: "start",
+      cwd: "./",
+      env: {
+        NODE_ENV: "production",
+      },
+      watch: false,
+      exec_mode: "fork",
+      // instances: 0,
+      autorestart: true,
+      max_memory_restart: "150M",
+    }
+  }
+]
