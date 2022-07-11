@@ -22,6 +22,7 @@ async function run() {
 
   for (const project of projects) {
     try {
+      console.log(chalk.green(`✨ Starting: ${project.name}`))
       await restartProject(project)
     } catch (error: any) {
       console.log(chalk.red(`🚨 Cannot start project: ${project.name}, reason: ${error.message}`))
@@ -93,6 +94,8 @@ function restartProject(project: Project) {
   return new Promise<void>(async (res, rej) => {
     function callback(err: Error, proc: Proc) {
       if (err) {
+        console.log(chalk.red(`🚨 PM2 Restart Error: ${err.message || err}`))
+
         return rej(err)
       }
       if (proc) {
@@ -101,12 +104,8 @@ function restartProject(project: Project) {
     }
 
     if (await isAlreadyStarted(project)) {
-      console.log(chalk.green(`✨ Restarting: ${project.name}`))
-
       pm2.restart(project.name, callback)
     } else {
-      console.log(chalk.green(`✨ Starting: ${project.name}`))
-
       const cwd = path.resolve(project.repo, project.options?.cwd || "./")
       console.log(cwd)
 
@@ -124,23 +123,40 @@ function restartProject(project: Project) {
 
 async function runPipeline(project: Project) {
   let deploymentId: number
+  let currentProcedure: string
 
   try {
     deploymentId = await startDeployment(project)
     deploymentId && (await updateDeployment(project, deploymentId, "in_progress"))
 
+    currentProcedure = "pull"
+
     await execAsync("git pull", project)
+
     for (const cmd of project.pipeline) {
       console.log(chalk.blueBright(`🔨 ${project.name}: running '${cmd}'`))
+      currentProcedure = cmd
 
       await execAsync(cmd, project)
     }
+
+    currentProcedure = "restart"
+
+    console.log(chalk.green(`✨ Restarting: ${project.name}`))
     await restartProject(project)
+
+    currentProcedure = "finilizing"
 
     deploymentId && (await updateDeployment(project, deploymentId, "success"))
     await sendGithubComment(project, "success")
   } catch (error) {
-    console.log(chalk.red(`🚨 Pipeline error for project '${project.name}', error: ${error.message || error}`))
+    console.log(
+      chalk.red(
+        `🚨 Pipeline error for project '${project.name}', procedure: '${currentProcedure}', error: '${
+          error.message || error
+        }'`
+      )
+    )
 
     deploymentId && (await updateDeployment(project, deploymentId, "failure"))
     await sendGithubComment(project, "error", error.message)
@@ -156,7 +172,7 @@ function execAsync(cmd: string, project: Project) {
         return rej(error)
       }
       if (stderr) {
-        return rej(stderr)
+        console.log(chalk.yellow(`stderr for ${project.name}: ${stderr}`))
       }
       if (stdout) {
         console.log(chalk.blueBright(`🔨 ${project.name}: ${stdout}`))
