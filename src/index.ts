@@ -60,7 +60,7 @@ function connectPM2() {
   return new Promise<void>((res, rej) => {
     pm2.connect(err => {
       if (err) {
-        console.log(chalk.red(`🚨 PM2 Error: ${err.message}`))
+        console.log(chalk.red(`🚨 PM2 Error: ${err.message || err}`))
         return rej(err)
       }
 
@@ -70,12 +70,13 @@ function connectPM2() {
 }
 
 function getProjectInfo(project: Project) {
-  const projectPath = path.resolve(project.repo, project.options?.cwd ?? "/")
+  const projectPath = path.resolve(project.repo, project.options?.cwd ?? "./")
 
   return new Promise<Pm2Env | null>((res, rej) => {
     pm2.list((err, list) => {
       if (err) {
-        return rej(err)
+        console.log(chalk.yellow(`⚠️ PM2 List Error: ${err.message || err}`))
+        return res(null)
       }
       const app = list.find(app => app.pm2_env?.pm_cwd === projectPath)
       res(app?.pm2_env ?? null)
@@ -106,7 +107,7 @@ function restartProject(project: Project) {
     } else {
       console.log(chalk.green(`✨ Starting: ${project.name}`))
 
-      const cwd = path.resolve(project.repo, project.options?.cwd || "/")
+      const cwd = path.resolve(project.repo, project.options?.cwd || "./")
       console.log(cwd)
 
       pm2.start(
@@ -139,7 +140,7 @@ async function runPipeline(project: Project) {
     deploymentId && (await updateDeployment(project, deploymentId, "success"))
     await sendGithubComment(project, "success")
   } catch (error) {
-    console.log(chalk.red(`🚨 Pipeline error for project '${project.name}', error: ${error.message}`))
+    console.log(chalk.red(`🚨 Pipeline error for project '${project.name}', error: ${error.message || error}`))
 
     deploymentId && (await updateDeployment(project, deploymentId, "failure"))
     await sendGithubComment(project, "error", error.message)

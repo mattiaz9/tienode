@@ -46,7 +46,7 @@ export async function startDeployment(project: Project) {
     )
     return resp.data.id as number
   } catch (error) {
-    console.log(chalk.red(`🚨 Comment error for project '${project.name}', error: ${error.message}`))
+    console.log(chalk.red(`🚨 GitHub Deployment error for project '${project.name}', error: ${error.message}`))
 
     return null
   }
@@ -78,7 +78,7 @@ export async function updateDeployment(project: Project, id: number, state: "suc
       }
     )
   } catch (error) {
-    console.log(chalk.red(`🚨 Comment error for project '${project.name}', error: ${error.message}`))
+    console.log(chalk.red(`🚨 GitHub Deployment error for project '${project.name}', error: ${error.message}`))
   }
 }
 
